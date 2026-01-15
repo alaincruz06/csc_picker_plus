@@ -896,7 +896,8 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
           if (widget.countryLabel != null) widget.countryLabel!,
           if (!widget.disableCountry) countryDropdown(),
 
-          if (widget.showStates) const SizedBox(height: 10.0),
+          if (widget.showStates && !widget.disableCountry)
+            const SizedBox(height: 10.0),
 
           // State Dropdown with Label
           if (widget.stateLabel != null) widget.stateLabel!,
@@ -907,13 +908,17 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
 
           // City Dropdown with Label
           if (widget.cityLabel != null) widget.cityLabel!,
-          if (widget.showStates && widget.showCities) cityDropdown(),
-
-          // Zipcode Widget
-          if (widget.zipcodeWidget != null) ...[
-            const SizedBox(height: 10.0),
-            widget.zipcodeWidget!,
-          ],
+          if (widget.showStates && widget.showCities)
+            Row(
+              children: [
+                Expanded(child: cityDropdown()),
+                // Zipcode Widget
+                if (widget.zipcodeWidget != null) ...[
+                  const SizedBox(width: 10.0),
+                  Expanded(child: widget.zipcodeWidget!),
+                ],
+              ],
+            ),
         ] else ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -925,11 +930,17 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
             ],
           ),
           const SizedBox(height: 10.0),
-          if (widget.showStates && widget.showCities) cityDropdown(),
-          if (widget.zipcodeWidget != null) ...[
-            const SizedBox(height: 10.0),
-            widget.zipcodeWidget!,
-          ],
+          if (widget.showStates && widget.showCities)
+            Row(
+              children: [
+                Expanded(child: cityDropdown()),
+                // Zipcode Widget
+                if (widget.zipcodeWidget != null) ...[
+                  const SizedBox(width: 10.0),
+                  Expanded(child: widget.zipcodeWidget!),
+                ],
+              ],
+            ),
         ],
       ],
     );
