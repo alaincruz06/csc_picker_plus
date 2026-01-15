@@ -15,7 +15,7 @@ class DropdownWithSearch<T> extends StatelessWidget {
   final double? searchBarRadius;
   final double? dialogRadius;
   final bool disabled;
-  final String label;
+  final Widget? labelWidget;
   final bool? isArabic;
 
   final Function onChanged;
@@ -35,9 +35,9 @@ class DropdownWithSearch<T> extends StatelessWidget {
     this.disabledDecoration,
     this.searchBarRadius,
     this.dialogRadius,
-    required this.label,
     this.disabled = false,
     this.isArabic,
+    this.labelWidget,
   });
 
   @override
@@ -69,30 +69,40 @@ class DropdownWithSearch<T> extends StatelessWidget {
                     }*/
           });
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: !disabled
-              ? decoration ??
-                  BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300, width: 1))
-              : disabledDecoration ??
-                  BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                      color: Colors.grey.shade300,
-                      border:
-                          Border.all(color: Colors.grey.shade300, width: 1)),
-          child: Row(
-            children: [
-              Expanded(
-                  child: Text(selected.toString(),
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          selectedItemStyle ?? const TextStyle(fontSize: 14))),
-              const Icon(Icons.keyboard_arrow_down_rounded)
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            labelWidget ?? const SizedBox.shrink(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: !disabled
+                  ? decoration ??
+                      BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5)),
+                          color: Colors.white,
+                          border:
+                              Border.all(color: Colors.grey.shade300, width: 1))
+                  : disabledDecoration ??
+                      BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5)),
+                          color: Colors.grey.shade300,
+                          border: Border.all(
+                              color: Colors.grey.shade300, width: 1)),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text(selected.toString(),
+                          overflow: TextOverflow.ellipsis,
+                          style: selectedItemStyle ??
+                              const TextStyle(fontSize: 14))),
+                  const Icon(Icons.keyboard_arrow_down_rounded)
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -123,10 +133,10 @@ class SearchDialog extends StatefulWidget {
   });
 
   @override
-  _SearchDialogState createState() => _SearchDialogState();
+  State<SearchDialog> createState() => _SearchDialogState();
 }
 
-class _SearchDialogState<T> extends State<SearchDialog> {
+class _SearchDialogState extends State<SearchDialog> {
   TextEditingController textController = TextEditingController();
   late List filteredList;
 
