@@ -658,13 +658,13 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
   @override
   void initState() {
     super.initState();
+    _selectedCity = widget.cityDropdownLabel.tr(widget.countryStateLanguage);
+    _selectedState = widget.stateDropdownLabel.tr(widget.countryStateLanguage);
     setDefaults();
     if (widget.countryFilter != null) {
       _countryFilter = widget.countryFilter!;
     }
     getCountries();
-    _selectedCity = widget.cityDropdownLabel.tr(widget.countryStateLanguage);
-    _selectedState = widget.stateDropdownLabel.tr(widget.countryStateLanguage);
   }
 
   Future<void> setDefaults() async {
@@ -675,7 +675,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
 
     if (widget.currentState != null) {
       setState(() => _selectedState = widget.currentState!);
-      if (widget.showCities) await getCities();
+      if (widget.showCities && _selectedCountry != null) await getCities();
     }
 
     if (widget.currentCity != null) {
@@ -752,28 +752,32 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
   }
 
   Future<List<Country>> getSelectedCountryData() async {
+    if (_selectedCountry == null) return [];
+
     // log(_selectedCountry ?? 'No Selected Country');
     var response = await getResponse();
-    var country = widget.flagState == CountryFlag.ENABLE ||
-            widget.flagState == CountryFlag.SHOW_IN_DROP_DOWN_ONLY
-        ? response
-            .map((map) => Country.fromJson(map))
-            .where((country) =>
-                '${country.emoji}    ${country.name}' == _selectedCountry ||
-                '${country.emoji}    ${country.nameAr}' == _selectedCountry)
-            .toList()
-        : response
-            .map((map) => Country.fromJson(map))
-            .where((country) =>
-                country.name == _selectedCountry ||
-                country.nameAr == _selectedCountry)
-            .toList();
+    final selectedCountry = _selectedCountry!.trim();
+    var country = response.map((map) => Country.fromJson(map)).where((country) {
+      final english = country.name?.trim();
+      final arabic = country.nameAr?.trim();
+      final englishWithFlag = '${country.emoji}    ${country.name}'.trim();
+      final arabicWithFlag = '${country.emoji}    ${country.nameAr}'.trim();
+
+      return selectedCountry == english ||
+          selectedCountry == arabic ||
+          selectedCountry == englishWithFlag ||
+          selectedCountry == arabicWithFlag;
+    }).toList();
 
     return country.cast<Country>();
   }
 
   ///get states from json response
   Future<List<Region?>> getStates() async {
+    final defaultStateLabel =
+        widget.stateDropdownLabel.tr(widget.countryStateLanguage).trim();
+    final previousSelectedState = _selectedState.trim();
+
     _statesModels.clear();
     var country = await getSelectedCountryData();
     var takeState = country.map((e) => e.state).toList();
@@ -792,22 +796,80 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
     } else {
       _statesModels.sort((a, b) => a!.name!.compareTo(b!.name!));
     }
+
+    Region? matchedState;
+
+    if (previousSelectedState.isNotEmpty &&
+        previousSelectedState != defaultStateLabel) {
+      for (final state in _statesModels) {
+        final english = state?.name?.trim();
+        final arabic = state?.nameAr?.trim();
+        if (previousSelectedState == english ||
+            previousSelectedState == arabic) {
+          matchedState = state;
+          break;
+        }
+      }
+    }
+
+    if (matchedState == null && widget.currentState != null) {
+      final currentState = widget.currentState!.trim();
+      for (final state in _statesModels) {
+        final english = state?.name?.trim();
+        final arabic = state?.nameAr?.trim();
+        if (currentState == english || currentState == arabic) {
+          matchedState = state;
+          break;
+        }
+      }
+    }
+
+    if (matchedState != null && mounted) {
+      setState(() {
+        _selectedState = widget.countryStateLanguage ==
+                CountryStateLanguage.arabic
+            ? (matchedState?.nameAr ?? matchedState?.name ?? _selectedState)
+            : (matchedState?.name ?? matchedState?.nameAr ?? _selectedState);
+      });
+    }
+
+    final shouldLoadCities = widget.showCities &&
+        _selectedCountry != null &&
+        _selectedState.trim().isNotEmpty &&
+        _selectedState.trim() != defaultStateLabel;
+    if (shouldLoadCities) {
+      await getCities();
+    }
+
     return _statesModels;
   }
 
   ///get cities from json response
   Future<List<String?>> getCities() async {
+    final defaultCityLabel =
+        widget.cityDropdownLabel.tr(widget.countryStateLanguage).trim();
+    final defaultStateLabel =
+        widget.stateDropdownLabel.tr(widget.countryStateLanguage).trim();
+    final previousSelectedCity = _selectedCity.trim();
+
+    if (_selectedCountry == null ||
+        _selectedState.trim().isEmpty ||
+        _selectedState.trim() == defaultStateLabel) {
+      return _cities;
+    }
+
     _cities.clear();
     var country = await getSelectedCountryData();
     var selectedStates = country.map((e) => e.state).toList();
 
     for (var selectedState in selectedStates) {
       var state = selectedState?.where((item) {
-        var stateName =
-            widget.countryStateLanguage == CountryStateLanguage.englishOrNative
-                ? item.name
-                : item.nameAr;
-        return stateName == _selectedState;
+        final selectedStateName = _selectedState.trim();
+        final englishStateName = item.name?.trim();
+        final arabicStateName = item.nameAr?.trim();
+
+        return selectedStateName == englishStateName ||
+            selectedStateName == arabicStateName;
       });
       // log('States Names: ${state?.first.toJson()}');
       var stateCities = state?.map((item) => item.city).toList();
@@ -823,6 +885,35 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
       });
     }
     _cities.sort((a, b) => a!.compareTo(b!));
+
+    String? matchedCity;
+
+    if (previousSelectedCity.isNotEmpty &&
+        previousSelectedCity != defaultCityLabel) {
+      for (final city in _cities) {
+        if (city?.trim() == previousSelectedCity) {
+          matchedCity = city;
+          break;
+        }
+      }
+    }
+
+    if (matchedCity == null && widget.currentCity != null) {
+      final currentCity = widget.currentCity!.trim();
+      for (final city in _cities) {
+        if (city?.trim() == currentCity) {
+          matchedCity = city;
+          break;
+        }
+      }
+    }
+
+    if (matchedCity != null && mounted) {
+      setState(() {
+        _selectedCity = matchedCity!;
+      });
+    }
+
     return _cities;
   }
 
