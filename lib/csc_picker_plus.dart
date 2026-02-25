@@ -684,7 +684,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
   }
 
   void _setDefaultCountry() {
-    if (widget.defaultCountry != null) {
+    if (widget.defaultCountry != null && _countryModels.isNotEmpty) {
       log(_countryModels[Countries[widget.defaultCountry]!]?.name ?? '');
       _onSelectedCountry(
           _countryModels[Countries[widget.defaultCountry]!]!.name!);
