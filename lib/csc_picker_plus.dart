@@ -578,6 +578,8 @@ class CSCPickerPlus extends StatefulWidget {
     this.currentState,
     this.currentCity,
     this.disableCountry = false,
+    this.disableState = false,
+    this.disableCity = false,
     this.countrySearchPlaceholder = "Search Country",
     this.stateSearchPlaceholder = "Search State",
     this.citySearchPlaceholder = "Search City",
@@ -613,6 +615,8 @@ class CSCPickerPlus extends StatefulWidget {
   final CityLanguage cityLanguage;
 
   final bool disableCountry;
+  final bool disableState;
+  final bool disableCity;
 
   /// Parameters to change style of CSC Picker
   final TextStyle? selectedItemStyle, dropdownHeadingStyle, dropdownItemStyle;
@@ -1072,7 +1076,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
       title: widget.stateDropdownLabel.tr(widget.countryStateLanguage),
       placeHolder:
           widget.stateSearchPlaceholder.tr(widget.countryStateLanguage),
-      disabled: _statesModels.isEmpty ? true : false,
+      disabled: _statesModels.isEmpty || widget.disableState ? true : false,
       items: _statesModels.map((dropDownStringItem) {
         return dropDownStringItem;
       }).toList(),
@@ -1099,7 +1103,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
     return DropdownWithSearch(
       title: widget.cityDropdownLabel.tr(widget.countryStateLanguage),
       placeHolder: widget.citySearchPlaceholder.tr(widget.countryStateLanguage),
-      disabled: _cities.isEmpty ? true : false,
+      disabled: _cities.isEmpty || widget.disableCity ? true : false,
       items: _cities.map((String? dropDownStringItem) {
         return dropDownStringItem;
       }).toList(),
