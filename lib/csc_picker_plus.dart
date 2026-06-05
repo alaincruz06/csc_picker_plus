@@ -587,6 +587,7 @@ class CSCPickerPlus extends StatefulWidget {
     this.stateDropdownLabel = "State",
     this.cityDropdownLabel = "City",
     this.countryFilter,
+    this.validator,
     this.zipcodeWidget, // New parameter for the zipcode widget
     this.countryLabel, // New parameter for the country label widget
     this.stateLabel, // New parameter for the state label widget
@@ -638,6 +639,7 @@ class CSCPickerPlus extends StatefulWidget {
   final String cityDropdownLabel;
 
   final List<CscCountry>? countryFilter;
+  final FormFieldValidator<String>? validator;
 
   /// New nullable widgets
   final Widget? zipcodeWidget; // Widget for the zipcode
@@ -1060,6 +1062,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
       }).toList(),
       isArabic: widget.countryStateLanguage == CountryStateLanguage.arabic,
       labelWidget: widget.countryLabel,
+      validator: widget.validator,
       selected: _selectedCountry ??
           widget.countryDropdownLabel.tr(widget.countryStateLanguage),
       onChanged: (value) {
@@ -1090,6 +1093,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
       disabledDecoration: widget.disabledDropdownDecoration,
       selected: _selectedState,
       labelWidget: widget.stateLabel,
+      validator: widget.validator,
       onChanged: (value) {
         if (value != null) {
           _onSelectedState(value);
@@ -1116,6 +1120,7 @@ class CSCPickerPlusState extends State<CSCPickerPlus> {
       disabledDecoration: widget.disabledDropdownDecoration,
       selected: _selectedCity,
       labelWidget: widget.cityLabel,
+      validator: widget.validator,
       onChanged: (value) {
         if (value != null) {
           _onSelectedCity(value);

@@ -17,6 +17,7 @@ class DropdownWithSearch<T> extends StatelessWidget {
   final bool disabled;
   final Widget? labelWidget;
   final bool? isArabic;
+  final FormFieldValidator<String>? validator;
 
   final Function onChanged;
 
@@ -38,73 +39,87 @@ class DropdownWithSearch<T> extends StatelessWidget {
     this.disabled = false,
     this.isArabic,
     this.labelWidget,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: disabled,
-      child: GestureDetector(
-        onTap: () {
-          showDialog(
-              context: context,
-              builder: (context) => SearchDialog(
-                  placeHolder: placeHolder,
-                  title: title,
-                  searchInputRadius: searchBarRadius,
-                  dialogRadius: dialogRadius,
-                  titleStyle: dropdownHeadingStyle,
-                  itemStyle: itemStyle,
-                  displayArabic: isArabic,
-                  items: items)).then((value) {
-            onChanged(value);
-            /* if(value!=null)
-                    {
-                      onChanged(value);
-                      _lastSelected = value;
-                    }
-                    else {
-                      print("Value NULL $value $_lastSelected");
-                      onChanged(_lastSelected);
-                    }*/
-          });
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            labelWidget ?? const SizedBox.shrink(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: !disabled
-                  ? decoration ??
-                      BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(5)),
-                          color: Colors.white,
-                          border:
-                              Border.all(color: Colors.grey.shade300, width: 1))
-                  : disabledDecoration ??
-                      BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(5)),
-                          color: Colors.grey.shade300,
-                          border: Border.all(
-                              color: Colors.grey.shade300, width: 1)),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Text(selected.toString(),
-                          overflow: TextOverflow.ellipsis,
-                          style: selectedItemStyle ??
-                              const TextStyle(fontSize: 14))),
-                  const Icon(Icons.keyboard_arrow_down_rounded)
-                ],
-              ),
+    return FormField<String>(
+      key: ValueKey(selected.toString()),
+      initialValue: selected.toString(),
+      validator: validator,
+      builder: (field) {
+        final String displayedValue = field.value ?? selected.toString();
+
+        return AbsorbPointer(
+          absorbing: disabled,
+          child: GestureDetector(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) => SearchDialog(
+                      placeHolder: placeHolder,
+                      title: title,
+                      searchInputRadius: searchBarRadius,
+                      dialogRadius: dialogRadius,
+                      titleStyle: dropdownHeadingStyle,
+                      itemStyle: itemStyle,
+                      displayArabic: isArabic,
+                      items: items)).then((value) {
+                field.didChange(value?.toString());
+                onChanged(value);
+              });
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                labelWidget ?? const SizedBox.shrink(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  decoration: !disabled
+                      ? decoration ??
+                          BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(5)),
+                              color: Colors.white,
+                              border: Border.all(
+                                  color: Colors.grey.shade300, width: 1))
+                      : disabledDecoration ??
+                          BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(5)),
+                              color: Colors.grey.shade300,
+                              border: Border.all(
+                                  color: Colors.grey.shade300, width: 1)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(displayedValue,
+                              overflow: TextOverflow.ellipsis,
+                              style: selectedItemStyle ??
+                                  const TextStyle(fontSize: 14))),
+                      const Icon(Icons.keyboard_arrow_down_rounded)
+                    ],
+                  ),
+                ),
+                if (field.errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+                    child: Text(
+                      field.errorText!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
